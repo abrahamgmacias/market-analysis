@@ -75,4 +75,12 @@ if token_solver == True:
 
                 print(f"{coin} added...\n")
 
-    
+    # Create Excel file access / populate Excel sheet
+    excel = Excelifier(f'{excel_offload_file}.xlsx', main_table, overwrite_sheets=True)
+    # excel.add_new_table(wallet_table)
+
+    # Move assets to sheet / save file
+    excel.move_to_excel()
+    excel.save_file()
+
+    print('Table done. Check Excel...')

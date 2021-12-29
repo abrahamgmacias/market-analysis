@@ -1,9 +1,9 @@
-from urllib import request
 from urllib.request import Request, urlopen
-from numpy import empty
 from pycoingecko import CoinGeckoAPI
 from openpyxl import load_workbook
+from urllib import request  
 from datetime import date
+from numpy import empty
 import pandas as pd
 import psycopg2
 
@@ -121,7 +121,7 @@ class Excelifier():
             title = date.today().strftime("%m-%d")
 
         for table in self.dfs.values():
-            table.df.to_excel(self.writer, sheet_name=title, startrow=table.coordinates[0], startcol=table.coordinates[1], header=True, index=False)
+            table.df.to_excel(self.writer, sheet_name=title, startrow=table.position_coordinates[0], startcol=table.position_coordinates[1], header=True, index=False)
             self.worksheet = self.writer.sheets[title]
 
 
