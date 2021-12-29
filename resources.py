@@ -126,13 +126,16 @@ class Excelifier():
 
 
 class Table():
-    def __init__(self, name, structure, coordinates):
+    def __init__(self, name, position_coordinates, structure=None):
         self.name = name
+        self.position_coordinates = position_coordinates
         self.df = structure
-        self.coordinates = coordinates
 
     def get_table_data(self): 
         return self.__dict__
+
+    def get_table(self):
+        return self.df
 
     def add_line(self, line_to_add):
         self.df = pd.concat([self.df, line_to_add])

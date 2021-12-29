@@ -12,8 +12,8 @@ wallet_assets = {"ethereum": 24}
 token_solver = True
 
 # Main and wallet dataframes 
-main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [], 'trading_volume': [], '24h': []})
-wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': [], 'total_mxn': []})
+# main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [], 'trading_volume': [], '24h': []})
+# wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': [], 'total_mxn': []})
 
 # Solver
 if token_solver == True:
@@ -28,8 +28,8 @@ if token_solver == True:
     db = DataBaseMod(db_data, 'token_data')
 
     # Create summary and wallet tables
-    main_table = Table('main', main_df, (1, 1))
-    wallet_table = Table('wallet', wallet_df, (1, 13)) 
+    main_table = Table('main', (1, 1))
+    # wallet_table = Table('wallet', (1, 13)) 
 
     # Traverse through tokens of interest...
     wallet_set = set(wallet_assets.keys())
@@ -62,11 +62,17 @@ if token_solver == True:
                 token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
 
             except KeyError:
+                # Maybe it could be a different error rather than coin id... 
                 print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
 
             else:
                 # Select token data in dataframe form
                 currency = token.get_currency()
                 token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24_change', dataframe=True)
-                print(token_df)
                 
+                # Add token data to the corresponding tables
+                main_table.add_line(token_df)
+
+                print(f"{coin} added...\n")
+
+    
