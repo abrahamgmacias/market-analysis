@@ -1,4 +1,6 @@
+from urllib import request
 from urllib.request import Request, urlopen
+from numpy import empty
 from pycoingecko import CoinGeckoAPI
 from openpyxl import load_workbook
 from datetime import date
@@ -55,23 +57,43 @@ class DataBaseMod(DataBase):
             return token_data[0]    
 
 
+cg = CoinGeckoAPI()
 class Token():
     def __init__(self, coingecko_id, ticker, description, exchanges):
-        self.token_id = coingecko_id
-        self.token_data = {'id': coingecko_id, 'ticker': ticker, 'description': description, 'exchanges': exchanges}
-
-        self.cg = CoinGeckoAPI()
+        self.coingecko_id = coingecko_id
+        self.description = description
+        self.exchanges = exchanges
+        self.ticker = ticker
         self.currency = 'usd'
 
-    def change_currency(self, new_currency):
+    def set_currency(self, new_currency):
         self.currency = new_currency
 
     def get_price(self, imarket_cap=False, i24hr_vol=False, i24hr_change=False):
-        scraped_token_data = self.cg.get_price(ids=self.token_id, vs_currencies=self.currency, include_market_cap=imarket_cap, include_24hr_vol=i24hr_vol, include_24hr_change=i24hr_change)
-        self.token_data = self.token_data | scraped_token_data[self.token_id]
+        # Try w/ diff currency
+        self.req_token_data = cg.get_price(ids=self.coingecko_id, vs_currencies=self.currency, include_market_cap=imarket_cap, include_24hr_vol=i24hr_vol, include_24hr_change=i24hr_change)
 
-    def get_token_data(self):
-        return self.token_data
+    def get_data(self, *args, dataframe=False):
+        try: 
+            token_data = self.__dict__ | self.req_token_data[self.coingecko_id]
+        except Exception:
+            token_data = self.__dict__
+        else:
+            token_data.pop('req_token_data')
+
+        if args is empty:
+            requested_data = {}
+            for arg in args:
+                requested_data[arg] = token_data[arg]
+        else:
+            requested_data = token_data
+
+        if dataframe == True:
+            return pd.DataFrame([requested_data])
+        return requested_data
+
+    def get_currency(self):
+        return self.currency
 
 
 class Excelifier():

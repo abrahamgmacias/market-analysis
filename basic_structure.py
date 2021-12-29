@@ -2,6 +2,7 @@ from pycoingecko import CoinGeckoAPI
 from resources import *
 import shutil
 
+# User must have a db that fulfills the reqs 
 
 # Initialize database
 db_data = {'db_host': 'localhost', 'db_name': 'crypto', 'db_user': 'postgres', 'db_pass': 'password'}
@@ -11,8 +12,7 @@ wallet_assets = {"ethereum": 24}
 token_solver = True
 
 # Main and wallet dataframes 
-main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [],
-                        'trading_volume': [], '1h': [], '24h': [], '7d': [], '14d': [], '30d': []})
+main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [], 'trading_volume': [], '24h': []})
 wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': [], 'total_mxn': []})
 
 # Solver
@@ -53,62 +53,20 @@ if token_solver == True:
             token = Token(coin, ticker, description, exchanges)
             db.add_token(token)
 
+        else:
+            # Create existing token object
+            token = Token(coingecko_id, ticker, description, exchanges)
 
+            # And get the available data via the Coingecko API
+            try:
+                token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
 
+            except KeyError:
+                print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    #     else:
-    #         # Create existing token object
-    #         token = Token(coingecko_id, ticker, description, exchanges)
-
-    #     # Check if coingecko allows webdriver to navigate
-    #     try: 
-    #         token.set_bot_status()
-
-    #     except Exception:
-    #         print('ABORTED: Website recognizes user as script. Website may be crowded... \n')
-    #         break
-        
-    #     else:
-    #         # Scrape data from coingecko.com
-    #         try: 
-    #             token.scrape_data()
-
-    #         except Exception:
-    #             print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
-
-    #         else:
-    #             # Select token data in dataframe form
-    #             token_df = token.get_data('ticker', 'description', 'exchanges', 'current_price', 'market_cap', 'trading_volume', '1h', '24h', '7d', '14d', '30d', dataframe=True)
-
-    #             # Add token data to the corresponding tables
-    #             main_table.add_line(token_df)
-
-    #             print(f"{coin} added...\n")
-
-    # # Create Excel file access / populate Excel sheet
-    # excel = Excelifier(f'{file}.xlsx', main_table, overwrite_sheets=True)
-    # # excel.add_new_table(wallet_table)
-
-    # # Move assets to sheet / save file
-    # excel.move_to_excel()
-    # excel.save_file()
-
-    # print('Table done. Check Excel...')
+            else:
+                # Select token data in dataframe form
+                currency = token.get_currency()
+                token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24_change', dataframe=True)
+                print(token_df)
+                
