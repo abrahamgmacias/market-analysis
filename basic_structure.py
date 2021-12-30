@@ -1,21 +1,14 @@
 from pycoingecko import CoinGeckoAPI
 from resources import *
+from solver import *
 import shutil
 
+# -------------------------------------------- NOTES -------------------------------------------- #
 # User must have a db that fulfills the reqs 
+# ----------------------------------------------------------------------------------------------- #
 
-# Initialize database
-db_data = {'db_host': 'localhost', 'db_name': 'crypto', 'db_user': 'postgres', 'db_pass': 'password'}
-coins_to_analyze = set(["ethereum", "bitcoin", "zelcash"])
-excel_offload_file = 'market_analysis'
-wallet_assets = {"ethereum": 24}
-token_solver = True
 
-# Main and wallet dataframes 
-# main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [], 'trading_volume': [], '24h': []})
-# wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': [], 'total_mxn': []})
-
-# Solver
+# ------------------------------------------- Algorithm ------------------------------------------ #
 if token_solver == True:
     # Clean the Excel offload file
     if '.xlsx' in excel_offload_file:
@@ -26,10 +19,6 @@ if token_solver == True:
 
     # Initialize Database 
     db = DataBaseMod(db_data, 'token_data')
-
-    # Create summary and wallet tables
-    main_table = Table('main', (1, 1))
-    # wallet_table = Table('wallet', (1, 13)) 
 
     # Traverse through tokens of interest...
     wallet_set = set(wallet_assets.keys())
@@ -73,14 +62,28 @@ if token_solver == True:
                 # Add token data to the corresponding tables
                 main_table.add_line(token_df)
 
+                # Add wallet assets to wallet dataframe
+                if include_wallet == True:
+                    if coin in wallet_assets:
+                        equivalent_quantity = float(wallet_assets[coin]*token_df['usd'])
+                        total_wallet_value += float(equivalent_quantity)
+                        wallet_line = pd.DataFrame({'assets': [coin], 'quantity': [wallet_assets[coin]], 'equivalence': [equivalent_quantity], 'total_usd': [total_wallet_value]})
+                        wallet_table.add_line(wallet_line)
+
                 print(f"{coin} added...\n")
 
     # Create Excel file access / populate Excel sheet
     excel = Excelifier(f'{excel_offload_file}.xlsx', main_table, overwrite_sheets=True)
-    # excel.add_new_table(wallet_table)
+
+    # Add a wallet table to the Excel file
+    if include_wallet == True:
+        excel.add_new_table(wallet_table)
 
     # Move assets to sheet / save file
     excel.move_to_excel()
     excel.save_file()
 
     print('Table done. Check Excel...')
+
+else:
+    print('Enable token solver...')

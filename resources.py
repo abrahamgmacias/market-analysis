@@ -116,13 +116,16 @@ class Excelifier():
     def save_file(self):
         self.writer.save()
 
-    def move_to_excel(self, table=None, sheet_title=None):
+    def move_to_excel(self, sheet_title=None):
         if sheet_title == None:
             title = date.today().strftime("%m-%d")
 
         for table in self.dfs.values():
             table.df.to_excel(self.writer, sheet_name=title, startrow=table.position_coordinates[0], startcol=table.position_coordinates[1], header=True, index=False)
             self.worksheet = self.writer.sheets[title]
+
+    def get_tables(self):
+        return self.dfs
 
 
 class Table():
