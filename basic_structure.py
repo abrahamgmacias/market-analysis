@@ -1,10 +1,10 @@
 from pycoingecko import CoinGeckoAPI
-from resources import *
 from solver import *
 import shutil
 
 # -------------------------------------------- NOTES -------------------------------------------- #
 # User must have a db that fulfills the reqs 
+# Add initial excel creation if not provided
 # ----------------------------------------------------------------------------------------------- #
 
 
@@ -46,31 +46,31 @@ if token_solver == True:
             # Create existing token object
             token = Token(coingecko_id, ticker, description, exchanges)
 
-            # And get the available data via the Coingecko API
-            try:
-                token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
+        # And get the available data via the Coingecko API
+        try:
+            token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
 
-            except KeyError:
-                # Maybe it could be a different error rather than coin id... 
-                print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
+        except KeyError:
+            # Maybe it could be a different error rather than coin id... 
+            print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
 
-            else:
-                # Select token data in dataframe form
-                currency = token.get_currency()
-                token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24_change', dataframe=True)
+        else:
+            # Select token data in dataframe form
+            currency = token.get_currency()
+            token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24_change', dataframe=True)
                 
-                # Add token data to the corresponding tables
-                main_table.add_line(token_df)
+            # Add token data to the corresponding tables
+            main_table.add_line(token_df)
 
-                # Add wallet assets to wallet dataframe
-                if include_wallet == True:
-                    if coin in wallet_assets:
-                        equivalent_quantity = float(wallet_assets[coin]*token_df['usd'])
-                        total_wallet_value += float(equivalent_quantity)
-                        wallet_line = pd.DataFrame({'assets': [coin], 'quantity': [wallet_assets[coin]], 'equivalence': [equivalent_quantity], 'total_usd': [total_wallet_value]})
-                        wallet_table.add_line(wallet_line)
+            # Add wallet assets to wallet dataframe
+            if include_wallet == True:
+                if coin in wallet_assets:
+                    equivalent_quantity = float(wallet_assets[coin]*token_df['usd'])
+                    total_wallet_value += float(equivalent_quantity)
+                    wallet_line = pd.DataFrame({'assets': [coin], 'quantity': [wallet_assets[coin]], 'equivalence': [equivalent_quantity], 'total_usd': [total_wallet_value]})
+                    wallet_table.add_line(wallet_line)
 
-                print(f"{coin} added...\n")
+            print(f"{coin} added...\n")
 
     # Create Excel file access / populate Excel sheet
     excel = Excelifier(f'{excel_offload_file}.xlsx', main_table, overwrite_sheets=True)
