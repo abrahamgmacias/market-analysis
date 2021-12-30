@@ -38,11 +38,11 @@ class DataBaseMod(DataBase):
 
     def add_token(self, token):
         # Access token data
-        token_data = token.get_token_data()
+        token_data = token.get_data()
 
         # Add token SQL function 
         self.cursor.execute(
-            f"INSERT INTO {self.main_table} VALUES ('{token_data['id']}', '{token_data['ticker']}', '{token_data['description']}', '{token_data['exchanges']}');"
+            f"INSERT INTO {self.main_table} VALUES ('{token_data['coingecko_id']}', '{token_data['ticker']}', '{token_data['description']}', '{token_data['exchanges']}');"
         )
         self.connection.commit()
 
@@ -81,7 +81,7 @@ class Token():
         else:
             token_data.pop('req_token_data')
 
-        if args is empty:
+        if len(args) > 0:
             requested_data = {}
             for arg in args:
                 requested_data[arg] = token_data[arg]
