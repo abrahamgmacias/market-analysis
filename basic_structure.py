@@ -5,6 +5,7 @@ import shutil
 # -------------------------------------------- NOTES -------------------------------------------- #
 # User must have a db that fulfills the reqs 
 # Add initial excel creation if not provided
+# Remove 'currency' column
 # ----------------------------------------------------------------------------------------------- #
 
 
@@ -57,7 +58,7 @@ if token_solver == True:
         else:
             # Select token data in dataframe form
             currency = token.get_currency()
-            token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24_change', dataframe=True)
+            token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24h_change', dataframe=True)
                 
             # Add token data to the corresponding tables
             main_table.add_line(token_df)
@@ -65,11 +66,9 @@ if token_solver == True:
             # Add wallet assets to wallet dataframe
             if include_wallet == True:
                 if coin in wallet_assets:
-                    equivalent_quantity = float(wallet_assets[coin]*token_df['usd'])
-                    total_wallet_value += float(equivalent_quantity)
-                    wallet_line = pd.DataFrame({'assets': [coin], 'quantity': [wallet_assets[coin]], 'equivalence': [equivalent_quantity], 'total_usd': [total_wallet_value]})
+                    wallet_line = wallet_table.add_calc_line(coin, wallet_assets[coin], token_df[currency])
                     wallet_table.add_line(wallet_line)
-
+                    
             print(f"{coin} added...\n")
 
     # Create Excel file access / populate Excel sheet

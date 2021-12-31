@@ -17,8 +17,7 @@ main_table = Table('main', (1, 1))
 
 # Wallet
 wallet_assets = {"ethereum": 24, 'bitcoin': 3}  
-wallet_table = Table('wallet', (1, 13)) 
-total_wallet_value = 0
+wallet_table = WalletTable('wallet', (1, 13), wallet_df)
 
 # Offload file (Has to be Excel...)
 excel_offload_file = 'market_analysis'
