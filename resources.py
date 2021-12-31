@@ -140,5 +140,25 @@ class Table():
     def get_table(self):
         return self.df
 
-    def add_line(self, line_to_add):
+    def add_line(self, line_to_add, enforce_structure=False):
+        if enforce_structure == True:
+            if self.df == None:
+                print('Feed a structure attribute or add a line to the table class.')
+            else:
+                for column_1, column_2 in zip(self.df, line_to_add):
+                    if column_1 != column_2:
+                        print('Table structures differ - cannot add line.')
+                        return 
+
         self.df = pd.concat([self.df, line_to_add])
+
+
+class WalletTable(Table):
+    def __init__(self, name, position_coordinates, structure=None):
+        super().__init__(name, position_coordinates, structure)
+        self.balance = 0
+
+    def add_calc_line(self, asset, quantity, asset_price):
+        equivalent_quantity = float(quantity*asset_price)
+        self.balance += equivalent_quantity
+        return pd.DataFrame({'assets': [asset], 'quantity': [quantity], 'equivalence': [equivalent_quantity], 'total_usd': [self.balance]})
