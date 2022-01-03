@@ -39,7 +39,7 @@ class DataBaseMod(DataBase):
     def add_token(self, token):
         # Add token SQL function 
         self.cursor.execute(
-            f"INSERT INTO {self.main_table} VALUES ('{token.coingecko_id}', '{token.ticker}', '{token.description}', '{token.get_exchanges(as_text=True)}');"
+            f"INSERT INTO {self.main_table} VALUES ('{token.coingecko_id}', '{token.get_ticker()}', '{token.description}', '{token.get_exchanges(as_text=True)}');"
         )
         self.connection.commit()
 
@@ -158,6 +158,11 @@ class Token():
             return textify(self.exchanges)
         else:
             return self.exchanges
+
+    def get_ticker(self):
+        if self.ticker == None:
+            self.set_ticker()
+        return self.ticker
 
 
 class Excelifier():
