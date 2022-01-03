@@ -59,41 +59,53 @@ class DataBaseMod(DataBase):
 
 cg = CoinGeckoAPI()
 class Token():
-    def __init__(self, coingecko_id, ticker, description, exchanges):
-        self.coingecko_id = coingecko_id
-        self.description = description
-        self.exchanges = exchanges
-        self.ticker = ticker
+    def __init__(self, coingecko_id):
+        self.coingecko_id = coingecko_id 
         self.currency = 'usd'
+        self.all_token_data = cg.get_coin_by_id(coingecko_id)
+        self.market_data = self.all_token_data['market_data']
 
     def set_currency(self, new_currency):
         self.currency = new_currency
+    
+    def get_ticker(self):
+        return self.all_token_data['symbol']
 
-    def get_price(self, imarket_cap=False, i24hr_vol=False, i24hr_change=False):
-        # Try w/ diff currency
-        self.req_token_data = cg.get_price(ids=self.coingecko_id, vs_currencies=self.currency, include_market_cap=imarket_cap, include_24hr_vol=i24hr_vol, include_24hr_change=i24hr_change)
+    def get_market_data(self):
+        return self.market_data
 
-    def get_data(self, *args, dataframe=False):
-        try: 
-            token_data = self.__dict__ | self.req_token_data[self.coingecko_id]
-        except Exception:
-            token_data = self.__dict__
-        else:
-            token_data.pop('req_token_data')
+    def get_market_cap(self, vs_currency=None):
+        if vs_currency == None:
+            vs_currency = self.currency
+
+        return self.market_data['market_cap'][vs_currency]
+
+    def get_price_change(self, *args):
+        price_change_attributes = ['price_change_percentage_24h', 'price_change_percentage_7d', 'price_change_percentage_14d', 'price_change_percentage_30d', 
+                                   'price_change_percentage_60d', 'price_change_percentage_200d', 'price_change_percentage_1y']
+        requested_data = {}
 
         if len(args) > 0:
-            requested_data = {}
             for arg in args:
-                requested_data[arg] = token_data[arg]
-        else:
-            requested_data = token_data
+                try:
+                    requested_data[arg] = self.market_data[arg]
+                except Exception:
+                    print(f'{arg} is not a valid argument. ')
 
-        if dataframe == True:
-            return pd.DataFrame([requested_data])
+        else:  
+            for attr in price_change_attributes:
+                requested_data[attr] = self.market_data[attr]
+
         return requested_data
 
-    def get_currency(self):
-        return self.currency
+    def get_market_cap_rank(self):
+        return self.market_data['market_cap_rank']
+
+    def get_volume(self, vs_currency=None):
+        if vs_currency == None:
+            vs_currency = self.currency 
+
+        return self.market_data['total_volume'][vs_currency]
 
 
 class Excelifier():
