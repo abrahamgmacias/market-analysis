@@ -37,12 +37,9 @@ class DataBaseMod(DataBase):
         super().__init__(db_data, main_table)
 
     def add_token(self, token):
-        # Access token data
-        token_data = token.get_data()
-
         # Add token SQL function 
         self.cursor.execute(
-            f"INSERT INTO {self.main_table} VALUES ('{token_data['coingecko_id']}', '{token_data['ticker']}', '{token_data['description']}', '{token_data['exchanges']}');"
+            f"INSERT INTO {self.main_table} VALUES ('{token.coingecko_id}', '{token.ticker}', '{token.description}', '{token.get_exchanges(as_text=True)}');"
         )
         self.connection.commit()
 
@@ -59,18 +56,51 @@ class DataBaseMod(DataBase):
 
 cg = CoinGeckoAPI()
 class Token():
-    def __init__(self, coingecko_id):
-        self.coingecko_id = coingecko_id 
-        self.currency = 'usd'
+    def __init__(self, coingecko_id, ticker=None, description=None, exchanges=None):
         self.all_token_data = cg.get_coin_by_id(coingecko_id)
         self.market_data = self.all_token_data['market_data']
+
+        # Main attributes
+        self.coingecko_id = coingecko_id 
+        self.ticker = ticker
+        self.description = description
+        self.exchanges = exchanges
+        self.currency = 'usd'
 
     def set_currency(self, new_currency):
         self.currency = new_currency
     
-    def get_ticker(self):
-        return self.all_token_data['symbol']
+    def set_ticker(self):
+        self.ticker = self.all_token_data['symbol']
 
+    def set_description(self, description):
+        self.description = description
+
+    def set_exchanges(self, num_exchanges):
+        if num_exchanges < 1 or type(num_exchanges) != int:
+            print(f"'{num_exchanges}' is not a valid input for num_exchanges.")
+            return
+
+        ticker_data = self.all_token_data['tickers']
+        max_num_exchanges = len(ticker_data)
+
+        if num_exchanges > max_num_exchanges:
+            print(f"'{num_exchanges}' exceeds the amount of registered exchanges ({max_num_exchanges})")
+            return
+
+        self.exchanges = []
+        for market in ticker_data:
+            market_name = market['market']['name']
+
+            if market_name not in self.exchanges:
+                self.exchanges += [market_name]
+
+            if len(self.exchanges) == num_exchanges:
+                break
+
+    def get_all_token_data(self):
+        return self.all_token_data
+    
     def get_market_data(self):
         return self.market_data
 
@@ -106,6 +136,28 @@ class Token():
             vs_currency = self.currency 
 
         return self.market_data['total_volume'][vs_currency]
+
+    def get_current_price(self, vs_currency=None):
+        if vs_currency == None:
+            vs_currency = self.currency 
+
+        return self.market_data['current_price']
+
+    def get_exchanges(self, as_text=False):
+        def textify(list):
+            final_text, count = "", 1
+            for elem in list:
+                final_text += str(elem)
+                if count != len(list):
+                    final_text += " / "
+                count += 1
+                    
+            return final_text
+
+        if as_text == True:
+            return textify(self.exchanges)
+        else:
+            return self.exchanges
 
 
 class Excelifier():
