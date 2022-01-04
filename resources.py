@@ -56,14 +56,13 @@ class DataBaseMod(DataBase):
 
 cg = CoinGeckoAPI()
 class Token():
-    def __init__(self, coingecko_id, ticker=None, description=None, exchanges=None):
+    def __init__(self, coingecko_id, ticker=None, exchanges=None):
         self.all_token_data = cg.get_coin_by_id(coingecko_id)
         self.market_data = self.all_token_data['market_data']
 
         # Main attributes
         self.coingecko_id = coingecko_id 
         self.ticker = ticker
-        self.description = description
         self.exchanges = exchanges
         self.currency = 'usd'
 
