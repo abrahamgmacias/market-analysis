@@ -3,8 +3,7 @@ from resources import *
 
 # Main and wallet dataframes 
 wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': []})
-# wallet_df = pd.DataFrame({'assets': [], 'quantity': [], 'equivalence': [], 'total_usd': [], 'total_mxn': []})
-# main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'current_price': [], 'market_cap': [], 'trading_volume': [], '24h': []})
+main_df = pd.DataFrame({'ticker': [], 'description': [], 'exchanges': [], 'market_cap': [], 'current_price': [], 'trading_volume': [], '24h': [], '7d': [], '14d': [], '30d': []})
 
 # Database data
 db_data = {'db_host': 'localhost', 'db_name': 'crypto', 'db_user': 'postgres', 'db_pass': 'password'}
@@ -17,7 +16,7 @@ main_table = Table('main', (1, 1))
 
 # Wallet
 wallet_assets = {"ethereum": 24, 'bitcoin': 3}  
-wallet_table = WalletTable('wallet', (1, 13), wallet_df)
+wallet_table = WalletTable('wallet', (1, 12), wallet_df)
 
 # Offload file (Has to be Excel...)
 excel_offload_file = 'market_analysis'

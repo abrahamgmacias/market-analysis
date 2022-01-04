@@ -6,6 +6,8 @@ import shutil
 # User must have a db that fulfills the reqs 
 # Add initial excel creation if not provided
 # Remove 'currency' column
+# Could you use a diff thread for each token?
+# TRY ADDING A TOKEN 
 # ----------------------------------------------------------------------------------------------- #
 
 
@@ -13,7 +15,7 @@ import shutil
 if token_solver == True:
     # Clean the Excel offload file
     if '.xlsx' in excel_offload_file:
-        excel_offload_file = (lambda file_name: file_name.split('.'))(excel_offload_file)[0] 
+        excel_offload_file = excel_offload_file.split('.')[0]        
 
     # Create an Excel file copy
     shutil.copyfile(f"{excel_offload_file}.xlsx", f"{excel_offload_file} - Copy.xlsx")
@@ -31,16 +33,9 @@ if token_solver == True:
             coingecko_id, ticker, description, exchanges = db.get_token(coin)
 
         except Exception:
-            def token_data_gatherer():
-                ticker = input('Ticker: ')
-                description = input('Description: ')
-                exchanges = input('Exchanges: ')
-                print('')
-                return ticker, description, exchanges
-
             # Gather token data / create token object / add it to the DB
-            ticker, description, exchanges = token_data_gatherer()
-            token = Token(coin, ticker, description, exchanges)
+            description = input('Description: ')
+            token = Token(coin, description)
             db.add_token(token)
 
         else:
@@ -49,16 +44,23 @@ if token_solver == True:
 
         # And get the available data via the Coingecko API
         try:
-            token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
+            token_mcap = token.get_market_cap()
+            # token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
 
         except KeyError:
             # Maybe it could be a different error rather than coin id... 
-            print(f"Couldn't find {coin}. Verify that it is an official coingecko id... \n")
+            print(f"An error has occured. Verify that '{coin}' it is an official coingecko id... \n")
 
         else:
             # Select token data in dataframe form
-            currency = token.get_currency()
-            token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24h_change', dataframe=True)
+            # currency = token.get_currency()
+            # token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24h_change', dataframe=True)
+            
+            token_percentages = token.get_price_change('price_change_percentage_24h', 'price_change_percentage_7d', 'price_change_percentage_14d', 'price_change_percentage_30d')
+            token_df = pd.DataFrame({'ticker': [token.ticker], 'description': [token.description], 'exchanges': [token.exchanges], 'market_cap': [token.get_market_cap()],
+                                     'current_price': [token.get_current_price()], 'trading_volume': [token.get_volume()], '24h': [token_percentages['price_change_percentage_24h']],
+                                     '7d': [token_percentages['price_change_percentage_7d']], '14d': [token_percentages['price_change_percentage_14d']], 
+                                     '30d': [token_percentages['price_change_percentage_30d']]})
                 
             # Add token data to the corresponding tables
             main_table.add_line(token_df)
@@ -66,13 +68,13 @@ if token_solver == True:
             # Add wallet assets to wallet dataframe
             if include_wallet == True:
                 if coin in wallet_assets:
-                    wallet_line = wallet_table.add_calc_line(coin, wallet_assets[coin], token_df[currency])
+                    wallet_line = wallet_table.add_calc_line(coin, wallet_assets[coin], float(token_df['current_price']))
                     wallet_table.add_line(wallet_line)
-                    
+
             print(f"{coin} added...\n")
 
     # Create Excel file access / populate Excel sheet
-    excel = Excelifier(f'{excel_offload_file}.xlsx', main_table, overwrite_sheets=True)
+    excel = Excelifier(f'{excel_offload_file}.xlsx', main_table, overwrite_sheets=False)
 
     # Add a wallet table to the Excel file
     if include_wallet == True:

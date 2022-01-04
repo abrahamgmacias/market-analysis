@@ -141,7 +141,7 @@ class Token():
         if vs_currency == None:
             vs_currency = self.currency 
 
-        return self.market_data['current_price']
+        return self.market_data['current_price'][vs_currency]
 
     def get_exchanges(self, as_text=False):
         def textify(list):
