@@ -7,7 +7,6 @@ from numpy import empty
 import pandas as pd
 import psycopg2
 
-
 class DataBase:
     def __init__(self, db_data, main_table):
         self.connection = self.feed_db_data(db_data)
@@ -32,28 +31,6 @@ class DataBase:
         self.connection.close()
 
 
-class DataBaseMod(DataBase):
-    def __init__(self, db_data, main_table):
-        super().__init__(db_data, main_table)
-
-    def add_token(self, token):
-        # Add token SQL function 
-        self.cursor.execute(
-            f"INSERT INTO {self.main_table} VALUES ('{token.coingecko_id}', '{token.get_ticker()}', '{token.description}', '{token.get_exchanges(as_text=True)}');"
-        )
-        self.connection.commit()
-
-    def get_token(self, coingecko_id):
-        self.cursor.execute(
-            f"SELECT * FROM {self.main_table} WHERE coingecko_id = '{coingecko_id}';"
-        )
-        token_data = self.cursor.fetchall()
-        if len(token_data) == 0:
-            return None
-        else:
-            return token_data[0]    
-
-
 cg = CoinGeckoAPI()
 class Token():
     def __init__(self, coingecko_id, ticker=None, exchanges=None):
@@ -69,12 +46,6 @@ class Token():
     def set_currency(self, new_currency):
         self.currency = new_currency
     
-    def set_ticker(self):
-        self.ticker = self.all_token_data['symbol']
-
-    def set_description(self, description):
-        self.description = description
-
     def set_exchanges(self, num_exchanges=3):
         if num_exchanges < 1 or type(num_exchanges) != int:
             print(f"'{num_exchanges}' is not a valid input for num_exchanges.")
@@ -97,6 +68,9 @@ class Token():
             if len(self.exchanges) == num_exchanges:
                 break
 
+    def set_ticker(self):
+        self.ticker = self.all_token_data['symbol']
+    
     def get_all_token_data(self):
         return self.all_token_data
     
