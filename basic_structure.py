@@ -3,11 +3,8 @@ from solver import *
 import shutil
 
 # -------------------------------------------- NOTES -------------------------------------------- #
-# User must have a db that fulfills the reqs 
 # Add initial excel creation if not provided
-# Remove 'currency' column
 # Could you use a diff thread for each token?
-# TRY ADDING A TOKEN 
 # ----------------------------------------------------------------------------------------------- #
 
 
@@ -35,31 +32,33 @@ if token_solver == True:
         except Exception:
             # Gather token data / create token object / add it to the DB
             description = input('Description: ')
-            token = Token(coin, description)
+            token = Token(coin, description=description)
             db.add_token(token)
 
         else:
             # Create existing token object
             token = Token(coingecko_id, ticker, description, exchanges)
 
-        # And get the available data via the Coingecko API
+        # Get the data from Coingecko - Initial request to test if the API is working
         try:
             token_mcap = token.get_market_cap()
-            # token.get_price(imarket_cap=True, i24hr_vol=True, i24hr_change=True)
 
-        except KeyError:
-            # Maybe it could be a different error rather than coin id... 
+        except Exception:
             print(f"An error has occured. Verify that '{coin}' it is an official coingecko id... \n")
 
         else:
             # Select token data in dataframe form
-            # currency = token.get_currency()
-            # token_df = token.get_data('ticker', 'description', 'exchanges', f'{currency}', f'{currency}_market_cap', f'{currency}_24h_vol', f'{currency}_24h_change', dataframe=True)
-            
             token_percentages = token.get_price_change('price_change_percentage_24h', 'price_change_percentage_7d', 'price_change_percentage_14d', 'price_change_percentage_30d')
-            token_df = pd.DataFrame({'ticker': [token.ticker], 'description': [token.description], 'exchanges': [token.exchanges], 'market_cap': [token.get_market_cap()],
-                                     'current_price': [token.get_current_price()], 'trading_volume': [token.get_volume()], '24h': [token_percentages['price_change_percentage_24h']],
-                                     '7d': [token_percentages['price_change_percentage_7d']], '14d': [token_percentages['price_change_percentage_14d']], 
+
+            token_df = pd.DataFrame({'ticker': [token.ticker], 
+                                     'description': [token.description], 
+                                     'exchanges': [token.exchanges], 
+                                     'market_cap': [token.get_market_cap()],
+                                     'current_price': [token.get_current_price()], 
+                                     'trading_volume': [token.get_volume()], 
+                                     '24h': [token_percentages['price_change_percentage_24h']],
+                                     '7d': [token_percentages['price_change_percentage_7d']], 
+                                     '14d': [token_percentages['price_change_percentage_14d']], 
                                      '30d': [token_percentages['price_change_percentage_30d']]})
                 
             # Add token data to the corresponding tables
@@ -68,8 +67,14 @@ if token_solver == True:
             # Add wallet assets to wallet dataframe
             if include_wallet == True:
                 if coin in wallet_assets:
-                    wallet_line = wallet_table.add_calc_line(coin, wallet_assets[coin], float(token_df['current_price']))
-                    wallet_table.add_line(wallet_line)
+                    current_quantity = float(wallet_assets[coin]*token_df['current_price'])
+                    wallet_balance += current_quantity
+                    wallet_df = pd.DataFrame({'assets': [coin],
+                                             'quantity': [wallet_assets[coin]],
+                                             'equivalence': [current_quantity],
+                                             'total_usd': [wallet_balance]})
+
+                    wallet_table.add_line(wallet_df)
 
             print(f"{coin} added...\n")
 

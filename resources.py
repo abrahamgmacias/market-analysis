@@ -76,7 +76,7 @@ class Token():
     def set_description(self, description):
         self.description = description
 
-    def set_exchanges(self, num_exchanges):
+    def set_exchanges(self, num_exchanges=3):
         if num_exchanges < 1 or type(num_exchanges) != int:
             print(f"'{num_exchanges}' is not a valid input for num_exchanges.")
             return
@@ -143,7 +143,7 @@ class Token():
 
         return self.market_data['current_price'][vs_currency]
 
-    def get_exchanges(self, as_text=False):
+    def get_exchanges(self, num_exchanges=3, as_text=False):
         def textify(list):
             final_text, count = "", 1
             for elem in list:
@@ -151,8 +151,10 @@ class Token():
                 if count != len(list):
                     final_text += " / "
                 count += 1
-                    
             return final_text
+
+        if self.exchanges == None:
+            self.set_exchanges(num_exchanges)
 
         if as_text == True:
             return textify(self.exchanges)
@@ -221,13 +223,3 @@ class Table():
 
         self.df = pd.concat([self.df, line_to_add])
 
-
-class WalletTable(Table):
-    def __init__(self, name, position_coordinates, structure=None):
-        super().__init__(name, position_coordinates, structure)
-        self.balance = 0
-
-    def add_calc_line(self, asset, quantity, asset_price):
-        equivalent_quantity = float(quantity*asset_price)
-        self.balance += equivalent_quantity
-        return pd.DataFrame({'assets': [asset], 'quantity': [quantity], 'equivalence': [equivalent_quantity], 'total_usd': [self.balance]})
