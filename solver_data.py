@@ -1,20 +1,28 @@
 import pandas as pd
 from resources import *
 
-# Coin watchlist
-coins_to_analyze = set(["ethereum", "bitcoin", "zelcash", "sentinel", "sienna", "dao-maker"])
+file_data = {   'watchlist':  set(["ethereum",
+                                   "bitcoin",
+                                   "zelcash"]),
 
-# Main table
-main_table = Table('main', (1, 1))
+                'main_table_data': {
+                                    'main_table': Table('main', (1, 1)),
+                                   },
 
-# Wallet
-wallet_balance = 0
-wallet_table = Table('wallet', (1, 12))
-wallet_assets = {"ethereum": 24, 'bitcoin': 3}  
+                'wallet_data':  {
+                                'wallet_table': Table('wallet', (1, 11)),
+                                'wallet_balance': 0,
+                                'wallet_assets': {
+                                                  "ethereum": 24,
+                                                  "bitcoin": 3
+                                                 }
+                                },
 
-# Offload file (Has to be Excel...)
-excel_offload_file = 'market_analysis.xlsx'
+                'offload_file': 'market_analysis.xlsx',
 
-# Switches
-token_solver = True
-include_wallet = True
+                'switches': {
+                             'token_solver': True,
+                             'include_wallet': True,
+                             'file_copy': False
+                            }
+}
