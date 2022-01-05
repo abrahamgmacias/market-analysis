@@ -140,7 +140,7 @@ class Token():
         return self.ticker
 
 
-class Excelifier():
+class ExcelWriter():
     def __init__(self, file_name, main_dataframe, overwrite_sheets=False):
         # Load or overwrite workbook
         if overwrite_sheets == False:
